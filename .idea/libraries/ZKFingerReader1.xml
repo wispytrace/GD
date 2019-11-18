@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="ZKFingerReader1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/sample/ZKFinger Demo2/lib/ZKFingerReader.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

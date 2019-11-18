@@ -1,0 +1,230 @@
+2019-11-10 20:45:19		Device Init Successful 
+
+2019-11-10 20:45:48		Device Init Successful 
+
+2019-11-10 20:51:00		Device Init Successful 
+
+2019-11-10 21:16:07		Device Init Successful 
+
+2019-11-10 21:37:36		Device Init Successful 
+
+2019-11-10 21:41:23		Device Init Successful 
+
+2019-11-10 21:45:07		Device Init Successful 
+
+2019-11-10 21:45:30		Device Init Successful 
+
+2019-11-10 21:45:51		 Device Init Successful 
+
+2019-11-10 22:17:06		Device Init Successful 
+
+2019-11-10 22:17:33		 Device Init Successful 
+
+2019-11-10 22:30:06		Device Init Successful 
+
+2019-11-10 22:30:41		Device Init Successful 
+
+2019-11-10 22:31:06		 Device Init Successful 
+
+2019-11-10 22:37:19		Device Init Successful 
+
+2019-11-10 22:38:13		Device Init Successful 
+
+2019-11-10 22:44:07		Device Init Successful 
+
+2019-11-10 22:44:15		 Device Init Successful 
+
+2019-11-10 22:44:17		Device Init Successful 
+
+2019-11-10 22:44:24		 Device Init Successful 
+
+2019-11-10 22:44:25		Device Init Successful 
+
+2019-11-10 22:44:41		Device Init Successful 
+
+2019-11-10 22:44:59		Device Init Successful 
+
+2019-11-10 22:45:57		 Device Init Successful 
+
+2019-11-11 17:13:57		Device Init Successful 
+
+2019-11-11 17:15:37		 Device Init Successful 
+
+2019-11-11 18:59:32		Device Init Successful 
+
+2019-11-11 19:00:22		 Device Init Successful 
+
+2019-11-11 19:11:00		Device Init Successful 
+
+2019-11-11 19:12:18		 Device Init Successful 
+
+2019-11-11 19:39:24		Device Init Successful 
+
+2019-11-11 19:39:49		 Device Init Successful 
+
+2019-11-11 19:40:15		Device Init Successful 
+
+2019-11-11 19:40:45		Device Init Successful 
+
+2019-11-11 19:43:02		Device Init Successful 
+
+2019-11-11 19:43:48		 Device Init Successful 
+
+2019-11-11 19:44:15		Device Init Successful 
+
+2019-11-11 19:46:51		Device Init Successful 
+
+2019-11-11 19:47:25		Device Init Successful 
+
+2019-11-11 19:47:54		 Device Init Successful 
+
+2019-11-11 19:50:29		Device Init Successful 
+
+2019-11-11 19:51:10		 Device Init Successful 
+
+2019-11-11 19:52:18		Device Init Successful 
+
+2019-11-11 19:54:33		Device Init Successful 
+
+2019-11-11 19:54:40		 Device Init Successful 
+
+2019-11-11 19:57:08		Device Init Successful 
+
+2019-11-11 19:58:38		 Device Init Successful 
+
+2019-11-11 20:12:56		Device Init Successful 
+
+2019-11-11 20:14:19User1Enroll Successful!
+2019-11-11 20:17:34		Device Init Successful 
+
+2019-11-11 20:18:03		 Device Init Successful 
+
+2019-11-11 20:18:11		Device Init Successful 
+
+2019-11-11 20:19:07		 Device Init Successful 
+
+2019-11-11 20:19:30		Device Init Successful 
+
+2019-11-11 20:20:00		User2Enroll Successful!
+2019-11-11 21:09:48		Device Init Successful 
+
+2019-11-11 21:10:14		 Device Init Successful 
+
+2019-11-11 21:12:11		Device Init Successful 
+
+2019-11-11 21:13:11		Device Init Successful 
+
+2019-11-11 21:14:28		Device Init Successful 
+
+2019-11-11 21:15:40		Device Init Successful 
+
+2019-11-11 21:18:07		Device Init Successful 
+
+2019-11-11 21:23:28		Device Init Successful 
+
+2019-11-11 21:30:10		Device Init Successful 
+
+2019-11-11 21:35:09		Device Init Successful 
+
+2019-11-11 21:36:52		Device Init Successful 
+
+2019-11-11 21:37:05		 Device Init Successful 
+
+2019-11-11 21:39:31		Device Init Successful 
+
+2019-11-11 21:40:31		Device Init Successful 
+
+2019-11-11 21:41:06		Device Init Successful 
+
+2019-11-11 21:44:10		Device Init Successful 
+
+2019-11-11 21:50:53		Device Init Successful 
+
+2019-11-11 21:51:12		Device Init Successful 
+
+2019-11-11 21:54:34		Device Init Successful 
+
+2019-11-11 21:55:32		Device Init Successful 
+
+2019-11-11 21:57:59		Device Init Successful 
+
+2019-11-11 22:05:06		 Device Init Successful 
+
+2019-11-11 22:05:09		Device Init Successful 
+
+2019-11-11 22:05:39		 Device Init Successful 
+
+2019-11-11 22:05:48		Device Init Successful 
+
+2019-11-11 22:06:01		Device Init Successful 
+
+2019-11-11 22:07:33		Device Init Successful 
+
+2019-11-11 22:08:16		Device Init Successful 
+
+2019-11-11 22:09:58		Device Init Successful 
+
+2019-11-11 22:12:55		Device Init Successful 
+
+2019-11-11 22:13:02		Device Init Successful 
+
+2019-11-11 22:14:25		Device Init Successful 
+
+2019-11-11 22:17:01		Device Init Successful 
+
+2019-11-11 22:17:39		Device Init Successful 
+
+2019-11-11 22:20:48		Device Init Successful 
+
+2019-11-11 22:24:03		Device Init Successful 
+
+2019-11-13 09:48:49		Device Init Successful 
+
+2019-11-13 09:49:16		 Device Init Successful 
+
+2019-11-13 09:51:06		Device Init Successful 
+
+2019-11-13 09:51:40		 Device Close Successful 
+
+2019-11-13 09:53:47		Device Init Successful 
+
+2019-11-13 09:53:59		 Device Close Successful 
+
+2019-11-13 09:54:08		Device Init Successful 
+
+2019-11-13 09:54:32		 Device Close Successful 
+
+2019-11-13 09:54:51		 Device Close Successful 
+
+2019-11-13 09:54:59		Device Init Successful 
+
+2019-11-13 09:55:21		 Device Close Successful 
+
+2019-11-13 09:56:32		Device Init Successful 
+
+2019-11-13 10:00:33		Device Init Successful 
+
+2019-11-13 10:04:00		Device Init Successful 
+
+2019-11-13 10:04:31		User3Enroll Successful!
+2019-11-13 10:06:09		Device Init Successful 
+
+2019-11-13 10:13:46		Device Init Successful 
+
+2019-11-13 10:14:39		User1Enroll Successful!
+2019-11-13 10:15:44		Device Init Successful 
+
+2019-11-13 10:25:11		Device Init Successful 
+
+2019-11-13 10:26:05		Device Init Successful 
+
+2019-11-13 10:28:56		Device Init Successful 
+
+2019-11-13 10:29:07		User2Enroll Successful!
+2019-11-13 10:29:50		 Device Close Successful 
+
+2019-11-13 10:30:36		Device Init Successful 
+
+2019-11-13 10:30:52		User1Enroll Successful!
+2019-11-13 10:35:40		 Device Close Successful 
+
