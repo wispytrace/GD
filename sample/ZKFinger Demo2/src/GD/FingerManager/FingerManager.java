@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import com.sun.org.apache.xalan.internal.xsltc.runtime.ErrorMessages_zh_CN;
 import com.sun.xml.internal.stream.util.ThreadLocalBufferAllocator;
 import com.zkteco.biometric.*;
 
@@ -238,6 +239,57 @@ public class FingerManager {
             }
         }catch (Exception e){
                 throw new Exception(e.getMessage()+"\tEnroll Fail! Please Open Enroll And Press Finger 3 Times Again");
+        }
+    }
+    /**
+     * Merge the 3 finger figures' template to generate the merged template
+     *
+     * param  prestored 3 figures, the template will be generated
+     * return
+     * throws it receals error
+     */
+    public void fingerMerge(byte[][] preRegTemplate, byte[] template) throws Exception{
+        int[] regLen = {templateLen};
+        if (FingerprintSensorEx.DBMerge(myAlgorithms, preRegTemplate[0], preRegTemplate[1], preRegTemplate[2], template, regLen) != 0){
+            throw new Exception("DB Template Merge Failed");
+        }
+    }
+    /**
+     * Add finger template in to memory
+     *
+     * finger id, template
+     * return
+     * throws it receals error
+     */
+    public void fingerAdd(int fid, byte[] template) throws Exception{
+        if (FingerprintSensorEx.DBAdd(myAlgorithms, fid, template) != 0){
+            throw new Exception("Fail To Add User Template In To Memory");
+        }
+    }
+    /**
+     * Add finger template in to memory
+     *
+     *
+     * return the finger number in memroy
+     * throws it receals error
+     */
+    public int fingerCount() throws Exception{
+        int count = FingerprintSensorEx.DBCount(myAlgorithms);
+        if (count <  0){
+            throw new Exception("Fail To Get Count Of Finger In Memory");
+        }
+        return count;
+    }
+    /**
+     * delete finger template from memory
+     *
+     *the finger id in memory
+     *
+     * throws it receals error
+     */
+    public void fingerDelete(int fid) throws Exception{
+        if (FingerprintSensorEx.DBDel(myAlgorithms, fid) != 0){
+            throw new Exception("Fail To Delete Finger " + fid +" In memory");
         }
     }
     /**
