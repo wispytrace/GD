@@ -131,6 +131,15 @@ public class DbManager {
         ResultSet result = statement.executeQuery("select " + field + " from " + table + " order by id  "+ condition );
         return result;
     }
+    public int dbGetMaxId() throws Exception{
+        int result = 0;
+        ResultSet resultSet = dbSearch("Staff", "id", "");
+        while (resultSet.next()){
+            result = resultSet.getInt("id");
+        }
+        result = result+1;
+        return result;
+    }
     public static void main(String[] args){
        try{
            DbManager test = new DbManager();

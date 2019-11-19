@@ -253,7 +253,7 @@ public class DemoUi extends JFrame {
             try {
                 fingerManger.fingerEnroll(fid, preRegTemplate, img);
                 messageWrite("log.txt", df.format(new Date()) + "\t\tUser" + fid[0] + "Enroll Successful!");
-                dbManager.dbInsert(Integer.parseInt(personid.getText()), personname.getText().getBytes(), null, null, 0, null, null, 0, null);
+                //dbManager.dbInsert(Integer.parseInt(personid.getText()), personname.getText().getBytes(), null, null, 0, null, null, 0, null);
                 textArea.setText("User" + fid[0] + "\tEnroll Successful!");
             }catch (Exception e){
                 errorMessage(e.getMessage());
