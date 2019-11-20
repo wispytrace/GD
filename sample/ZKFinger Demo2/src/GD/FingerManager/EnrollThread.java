@@ -9,7 +9,7 @@ public class EnrollThread extends Thread{
     private DemoUi demoUi = null;
     private FingerManager fingerManager = null;
     private DbManager dbManager = null;
-    public void EnrooThread(DemoUi demoUi, FingerManager fingerManager, DbManager dbManager){
+    public void EnrollThread(DemoUi demoUi, FingerManager fingerManager, DbManager dbManager){
         this.demoUi = demoUi;
         this.fingerManager = fingerManager;
         this.dbManager = dbManager;
@@ -46,9 +46,9 @@ public class EnrollThread extends Thread{
         }
         try{
             fingerManager.fingerMerge(preRegTemplate, template);
-            fid = dbManager.dbGetMaxId();//暂定fid的获取来源
+            fid = dbManager.dbGetMaxId("FingerBase");//暂定fid的获取来源
             fingerManager.fingerAdd(fid, template);
-            dbManager.dbInsert(fid, template, 0);
+            dbManager.dbInsert(fid, template);
             //*************Set successful message
         }catch (Exception e){
             //*************Set error meesage

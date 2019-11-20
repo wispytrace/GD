@@ -61,13 +61,14 @@ public class DbManager {
         sql.executeUpdate();
         sql.close();
     }
-    public void dbInsert(int id, java.sql.Date outime) throws Exception{
+    public void dbInsert(int recordid, int id,java.sql.Date outime) throws Exception{
         if (connect.isClosed()){
             throw new Exception("Connect Has closed");
         }
-        PreparedStatement sql = connect.prepareStatement("insert into AttendanceRecord (id, outime) values(?, ?)");
-        sql.setInt(1, id);
-        sql.setDate(2, outime);
+        PreparedStatement sql = connect.prepareStatement("insert into AttendanceRecord (recordod, id, outime) values(?, ?, ?)");
+        sql.setInt(1, recordid);
+        sql.setInt(2, id);
+        sql.setDate(3, outime);
         sql.executeUpdate();
         sql.close();
     }
@@ -82,46 +83,42 @@ public class DbManager {
         sql.executeUpdate();
         sql.close();
     }
-    public void dbInsert(int id, byte[] template, int memoryid) throws Exception{
+    public void dbInsert(int id, byte[] template) throws Exception{
         if (connect.isClosed()){
             throw new Exception("Connect Has closed");
         }
-        PreparedStatement sql = connect.prepareStatement("insert into FingerBase values(?, ?, ?)");
+        PreparedStatement sql = connect.prepareStatement("insert into FingerBase values(?, ?)");
         sql.setInt(1, id);
         sql.setBytes(2, template);
-        sql.setInt(3, memoryid);
         sql.executeUpdate();
         sql.close();
     }
-    public void dbInsert(int id, int week, int totaltime, byte[] comment) throws Exception{
+    public void dbInsert(int recordid, int id, int week, int totaltime, byte[] comment) throws Exception{
         if (connect.isClosed()){
             throw new Exception("Connect Has closed");
         }
-        PreparedStatement sql = connect.prepareStatement("insert into AttendanceStatistics values(?, ?, ?, ?)");
-        sql.setInt(1, id);
-        sql.setInt(2, week);
-        sql.setInt(3, totaltime);
-        sql.setBytes(4, comment);
+        PreparedStatement sql = connect.prepareStatement("insert into AttendanceStatistics values(?, ?, ?, ?, ?)");
+        sql.setInt(1, recordid);
+        sql.setInt(2, id);
+        sql.setInt(3, week);
+        sql.setInt(4, totaltime);
+        sql.setBytes(5, comment);
         sql.executeUpdate();
         sql.close();
     }
-    public void dbUpdate(String table, String[] field, String[] value, String[] condition) throws Exception{
+    public void dbUpdate(String table, String field, String value, String condition) throws Exception{
         if (connect.isClosed()){
             throw new Exception("Connect Has closed");
         }
         Statement statement = connect.createStatement();
-        for (int i = 0; i < value.length; i++) {
-            statement.executeQuery("update " + table + " set " + field[i] + "=" + value[i] + " where " + condition[i]);
-        }
+        statement.executeQuery("update " + table + " set " + field + "=" + value + " where " + condition);
     }
-    public void dbDelete(String table, String[] field, String[] value)throws Exception{
+    public void dbDelete(String table, String field, String value)throws Exception{
         if (connect.isClosed()){
             throw new Exception("Connect Has closed");
         }
         Statement statement = connect.createStatement();
-        for (int i = 0; i < value.length; i++) {
-            statement.executeQuery("delete from  " + table + " where " + field[i] + "=" + value[i]);
-        }
+        statement.executeQuery("delete from  " + table + " where " + field + "=" + value);
     }
     public ResultSet dbSearch(String table, String field, String condition ) throws Exception{
         if (connect.isClosed()){
@@ -131,9 +128,9 @@ public class DbManager {
         ResultSet result = statement.executeQuery("select " + field + " from " + table + " order by id  "+ condition );
         return result;
     }
-    public int dbGetMaxId() throws Exception{
+    public int dbGetMaxId(String table) throws Exception{
         int result = 0;
-        ResultSet resultSet = dbSearch("Staff", "id", "");
+        ResultSet resultSet = dbSearch(table, "id", "");
         while (resultSet.next()){
             result = resultSet.getInt("id");
         }
@@ -144,7 +141,7 @@ public class DbManager {
        try{
            DbManager test = new DbManager();
            test.dbConnect("root", "");
-           test.dbInsert(0, "欧阳炳濠".getBytes(), "PB16120517".getBytes(), "大四".getBytes(), 0, "王永".getBytes(),
+           test.dbInsert(1, "欧阳炳濠co".getBytes(), "PB16120517".getBytes(), "大四".getBytes(), 0, "王永".getBytes(),
                    "AI开发".getBytes(), 0, "tlsf,hhzj".getBytes());
            ResultSet kk =  test.dbSearch("staff","*" ,"");
            while (kk.next()){

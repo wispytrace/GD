@@ -2,6 +2,7 @@ package GD.FingerManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import com.sun.org.apache.xalan.internal.xsltc.runtime.ErrorMessages_zh_CN;
@@ -28,6 +29,7 @@ public class FingerManager {
     private static final int ACCURACY_GATE = 60;
     private static boolean isEnroll = false;
     public static final int CONFIRM_TIMES = 3;
+    public static HashMap<Integer, Integer> Online = new HashMap<Integer, Integer>();
     /**
      * Init device
      *
@@ -125,7 +127,6 @@ public class FingerManager {
     public static void fingerIdentity(byte[] template, int[] fid) throws Exception{
         int[] score = new int[1];
         if (FingerprintSensorEx.DBIdentify(myAlgorithms, template, fid, score) < 0){
-            lightControl("red");
             throw new Exception("Fail To Find a Fingerprint In memory, Please Register First");
         }
     }
