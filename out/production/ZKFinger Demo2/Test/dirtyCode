@@ -1,0 +1,64 @@
+    private JComponent ceeatePersonStatus(){
+        JPanel statusPnael = new JPanel();
+        JPanel panel = new JPanel(new GridLayout(12,12));
+//        panel.setPreferredSize(new Dimension(2000,3000));//主要是这句代码，设置panel的首选大小，同时保证宽高大于JScrollPane的宽高，这样下面的JScrollPane才会出现滚动条
+        for (int i = 0; i < 100; i++){
+            panel.add(new JButton("sss"));
+        }
+        statusContainer = new JPanel(new BorderLayout());
+        statusContainer.setPreferredSize(new Dimension((int)(TOP_CONTAINER_WIDTH * 0.89), (int)(TOP_CONTAINER_HEIGHT * 0.74)));
+        statusContainer.add(panel);
+        statusScroll = new JScrollPane(statusContainer);
+        statusScroll.setPreferredSize(new Dimension((int)(TOP_CONTAINER_WIDTH * 0.89), (int)(TOP_CONTAINER_HEIGHT * 0.74)));
+//        scrollPane.setBackground(Color.red);
+//        statusPnael.setPreferredSize(new Dimension(300, 300));
+        statusPnael.add(statusScroll);
+        return statusPnael;
+    }
+
+
+            GridBagLayout resultLayout = new  GridBagLayout();
+            resultPanel.setLayout(resultLayout);
+            resultPanel.setAutoscrolls(false);
+            GridBagConstraints format = new GridBagConstraints();
+
+            JPanel itemList = new JPanel(new GridLayout(1, 6));
+            createDetailItems(itemList, new String[]{"日期", "姓名", "上线时间", "下线时间", "状态", "小组"}, null);
+            format.weightx = 1;
+            format.weighty = 0.5;
+            format.gridwidth = GridBagConstraints.REMAINDER;
+            format.fill = GridBagConstraints.BOTH;
+            resultLayout.addLayoutComponent(itemList, format);
+            resultPanel.add(itemList);
+
+            JPanel resultCardContainer = new JPanel(new CardLayout());
+            format.weighty = 6;
+            resultLayout.addLayoutComponent(resultCardContainer, format);
+            resultPanel.add(resultCardContainer);
+
+            JPanel itemContainer = new JPanel(new GridLayout(12, 1));
+            for (int i = 0; i<12; i++) {
+                createDetailItems(itemContainer, new String[]{"2019-11-24", "今天的风儿甚是喧嚣", "23:47", "24:00", "正常", "男子高校"}, null);
+            }
+            resultCardContainer.add(itemContainer);
+
+            JPanel pageContainer = new JPanel();
+            GridBagLayout pagelayout = new GridBagLayout();
+            pageContainer.setLayout(pagelayout);
+            format.weighty = 2;
+            resultLayout.addLayoutComponent(pageContainer, format);
+            format.weightx = 1;
+            format.weighty = 1;
+            format.gridwidth = 1;
+            format.fill = GridBagConstraints.NONE;
+            JButton preview = new JButton("前一页");
+            JButton first = new JButton("1");
+            JButton next = new JButton("后一页");
+            pagelayout.addLayoutComponent(preview,format);
+            pagelayout.addLayoutComponent(first, format);
+            pagelayout.addLayoutComponent(next, format);
+            pageContainer.add(preview);
+            pageContainer.add(first);
+            pageContainer.add(next);
+
+            resultPanel.add(pageContainer);

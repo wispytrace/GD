@@ -228,3 +228,9 @@
 2019-11-13 10:30:52		User1Enroll Successful!
 2019-11-13 10:35:40		 Device Close Successful 
 
+2019-11-20 14:59:39		Device Init Successful 
+
+2019-11-20 15:00:19		User2Enroll Successful!
+2019-11-20 15:04:04		Device Init Successful 
+
+2019-11-20 15:04:31		User3Enroll Successful!
