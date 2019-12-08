@@ -62,3 +62,206 @@
             pageContainer.add(next);
 
             resultPanel.add(pageContainer);
+
+    private void createDetailItems(JPanel resultPan1, String[] message, JPanel operation){
+        int colLength = message.length;
+        if (operation != null){
+            colLength = colLength + 1;
+        }
+        JPanel items = new JPanel(new GridLayout(1, colLength));
+        JLabel[] item = new JLabel[message.length];
+        for (int i = 0; i<message.length; i++){
+            item[i] = new JLabel(message[i]);
+            items.add(item[i]);
+        }
+        if (operation != null){
+            items.add(operation);
+        }
+        resultPan1.add(items);
+//        JLabel time = new JLabel(message[0]);
+//        JLabel user = new JLabel(message[1]);
+//        JLabel intime = new JLabel(message[2]);
+//        JLabel outime = new JLabel(message[3]);
+//        JLabel status = new JLabel(message[4]);
+//        JLabel team = new JLabel(message[5]);
+//        items.add(time);
+//        items.add(user);
+//        items.add(intime);
+//        items.add(outime);
+//        items.add(status);
+//        items.add(team);
+//        resultPan1.add(items);
+    }
+    private JPanel c1(){
+        JPanel allResult = new JPanel();
+        GridBagLayout resultLayout = new  GridBagLayout();
+        allResult.setLayout(resultLayout);
+        GridBagConstraints format = new GridBagConstraints();
+
+        JPanel itemList = new JPanel(new GridLayout(1, 6));
+        createDetailItems(itemList, new String[]{"时间段" ,"姓名", "考勤总时间", "考勤总次数", "评价", "异常记录次数"}, null);
+        format.weightx = 1;
+        format.weighty = 0.5;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        format.fill = GridBagConstraints.BOTH;
+        resultLayout.addLayoutComponent(itemList, format);
+        allResult.add(itemList);
+
+        JPanel resultCardContainer = new JPanel(new CardLayout());
+        format.weighty = 6;
+        resultLayout.addLayoutComponent(resultCardContainer, format);
+        allResult.add(resultCardContainer);
+
+        JPanel itemContainer = new JPanel(new GridLayout(12, 1));
+        for (int i = 0; i<12; i++) {
+            createDetailItems(itemContainer, new String[]{"2019/11/24 - 2019/11/31", "今天的风儿甚是喧嚣", "60", "20", "优秀", "0"}, null);
+        }
+        resultCardContainer.add(itemContainer);
+
+        JPanel pageContainer = new JPanel();
+        GridBagLayout pagelayout = new GridBagLayout();
+        pageContainer.setLayout(pagelayout);
+        format.weighty = 2;
+        resultLayout.addLayoutComponent(pageContainer, format);
+        format.weightx = 1;
+        format.weighty = 1;
+        format.gridwidth = 1;
+        format.fill = GridBagConstraints.NONE;
+        JButton preview = new JButton("前一页");
+        JButton first = new JButton("1");
+        JButton next = new JButton("后一页");
+        pagelayout.addLayoutComponent(preview,format);
+        pagelayout.addLayoutComponent(first, format);
+        pagelayout.addLayoutComponent(next, format);
+        pageContainer.add(preview);
+        pageContainer.add(first);
+        pageContainer.add(next);
+
+        allResult.add(pageContainer);
+        return allResult;
+    }
+    public JPanel createOperationButton(int id){
+        JPanel operationPanel = new JPanel(new BorderLayout());
+        JButton update = new JButton("修改");
+        JButton delete = new JButton("删除");
+        operationPanel.add(update, BorderLayout.WEST);
+        operationPanel.add(delete, BorderLayout.EAST);
+        return operationPanel;
+    }
+    private void componentSizeAdjust(){
+        Dimension windowSize = topContainer.getSize();
+        logoHeader.setBounds(0, 0, (int)(windowSize.getWidth() - WIDITH_FIX), (int)(windowSize.getHeight() * DIVIDE_RATIO));
+        paneNavigation.setBounds(0, (int)(windowSize.getHeight() * DIVIDE_RATIO), (int)(windowSize.getWidth() - WIDITH_FIX), (int)(windowSize.getHeight()* (1 - DIVIDE_RATIO)));
+        login.setBounds((int)(windowSize.getWidth()*0.9), 0, (int)(windowSize.getWidth()*0.1), (int)(windowSize.getHeight()*0.04));
+//        statusScroll.setPreferredSize(new Dimension((int)(windowSize.width * 0.93), (int)(windowSize.getHeight() * 0.74)));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private void createDetailItems(JPanel resultPan1, String[] message, JPanel operation){
+            int colLength = message.length;
+            if (operation != null){
+                colLength = colLength + 1;
+            }
+            JPanel items = new JPanel(new GridLayout(1, colLength));
+            JLabel[] item = new JLabel[message.length];
+            for (int i = 0; i<message.length; i++){
+                item[i] = new JLabel(message[i]);
+                items.add(item[i]);
+            }
+            if (operation != null){
+                items.add(operation);
+            }
+            resultPan1.add(items);
+    //        JLabel time = new JLabel(message[0]);
+    //        JLabel user = new JLabel(message[1]);
+    //        JLabel intime = new JLabel(message[2]);
+    //        JLabel outime = new JLabel(message[3]);
+    //        JLabel status = new JLabel(message[4]);
+    //        JLabel team = new JLabel(message[5]);
+    //        items.add(time);
+    //        items.add(user);
+    //        items.add(intime);
+    //        items.add(outime);
+    //        items.add(status);
+    //        items.add(team);
+    //        resultPan1.add(items);
+        }
+        private JPanel c1(){
+            JPanel allResult = new JPanel();
+            GridBagLayout resultLayout = new  GridBagLayout();
+            allResult.setLayout(resultLayout);
+            GridBagConstraints format = new GridBagConstraints();
+
+            JPanel itemList = new JPanel(new GridLayout(1, 6));
+            createDetailItems(itemList, new String[]{"时间段" ,"姓名", "考勤总时间", "考勤总次数", "评价", "异常记录次数"}, null);
+            format.weightx = 1;
+            format.weighty = 0.5;
+            format.gridwidth = GridBagConstraints.REMAINDER;
+            format.fill = GridBagConstraints.BOTH;
+            resultLayout.addLayoutComponent(itemList, format);
+            allResult.add(itemList);
+
+            JPanel resultCardContainer = new JPanel(new CardLayout());
+            format.weighty = 6;
+            resultLayout.addLayoutComponent(resultCardContainer, format);
+            allResult.add(resultCardContainer);
+
+            JPanel itemContainer = new JPanel(new GridLayout(12, 1));
+            for (int i = 0; i<12; i++) {
+                createDetailItems(itemContainer, new String[]{"2019/11/24 - 2019/11/31", "今天的风儿甚是喧嚣", "60", "20", "优秀", "0"}, null);
+            }
+            resultCardContainer.add(itemContainer);
+
+            JPanel pageContainer = new JPanel();
+            GridBagLayout pagelayout = new GridBagLayout();
+            pageContainer.setLayout(pagelayout);
+            format.weighty = 2;
+            resultLayout.addLayoutComponent(pageContainer, format);
+            format.weightx = 1;
+            format.weighty = 1;
+            format.gridwidth = 1;
+            format.fill = GridBagConstraints.NONE;
+            JButton preview = new JButton("前一页");
+            JButton first = new JButton("1");
+            JButton next = new JButton("后一页");
+            pagelayout.addLayoutComponent(preview,format);
+            pagelayout.addLayoutComponent(first, format);
+            pagelayout.addLayoutComponent(next, format);
+            pageContainer.add(preview);
+            pageContainer.add(first);
+            pageContainer.add(next);
+
+            allResult.add(pageContainer);
+            return allResult;
+        }
+        public JPanel createOperationButton(int id){
+            JPanel operationPanel = new JPanel(new BorderLayout());
+            JButton update = new JButton("修改");
+            JButton delete = new JButton("删除");
+            operationPanel.add(update, BorderLayout.WEST);
+            operationPanel.add(delete, BorderLayout.EAST);
+            return operationPanel;
+        }
+        private void componentSizeAdjust(){
+            Dimension windowSize = topContainer.getSize();
+            logoHeader.setBounds(0, 0, (int)(windowSize.getWidth() - WIDITH_FIX), (int)(windowSize.getHeight() * DIVIDE_RATIO));
+            paneNavigation.setBounds(0, (int)(windowSize.getHeight() * DIVIDE_RATIO), (int)(windowSize.getWidth() - WIDITH_FIX), (int)(windowSize.getHeight()* (1 - DIVIDE_RATIO)));
+            login.setBounds((int)(windowSize.getWidth()*0.9), 0, (int)(windowSize.getWidth()*0.1), (int)(windowSize.getHeight()*0.04));
+    //        statusScroll.setPreferredSize(new Dimension((int)(windowSize.width * 0.93), (int)(windowSize.getHeight() * 0.74)));
+        }

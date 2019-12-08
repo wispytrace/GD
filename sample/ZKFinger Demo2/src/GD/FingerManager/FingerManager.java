@@ -114,7 +114,7 @@ public class FingerManager {
     public static void fingerMatch(byte[] srcTemplate, byte[] desTemplate) throws Exception{
         int result = FingerprintSensorEx.DBMatch(myAlgorithms, srcTemplate, desTemplate);
         if (result < ACCURACY_GATE){
-            throw new Exception("Fail To Match");
+            throw new Exception("Fail to Match, Please try again");
         }
     }
     /**

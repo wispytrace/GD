@@ -1,5 +1,7 @@
 package GD.FingerManager;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.sql.*;
 import java.io.File;
 import java.text.DateFormat;
@@ -27,8 +29,8 @@ public class DbManager {
     public void dbConnect(String user, String password) throws Exception{
         Class.forName(DRIVER);
         connect = DriverManager.getConnection(URL, user, password);
-        if (connect.isClosed()){
-            throw new Exception("Data Base Connection Failed, Please Try Again");
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接失败, 请重新打开软件!");
         }
         Statement statement = connect.createStatement();
         ResultSet ret = statement.executeQuery("show databases like \'" + DBNAME + '\'');
@@ -43,59 +45,57 @@ public class DbManager {
 //            System.out.println(directory.getCanonicalPath());//获取标准的路径
 //            System.out.println(directory.getAbsolutePath());//获取绝对路径
     }
-    public void dbInsert(int id, byte[] name, byte[] sno, byte[] grade,int permission, byte[] tutor, byte[] team,
-                         int status, byte[] password) throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
+    public void dbInsert(int id, byte[] name, byte[] sno,int permission, byte[] tutor, byte[] team,
+                         int status, byte[] phone, byte[] password) throws Exception{
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
         }
         PreparedStatement sql = connect.prepareStatement("insert into Staff values(?, ?, ?, ?, ?, ?, ?, ?, ?)");
         sql.setInt(1, id);
         sql.setBytes(2, name);
         sql.setBytes(3, sno);
-        sql.setBytes(4, grade);
-        sql.setInt(5, permission);
-        sql.setBytes(6, tutor);
-        sql.setBytes(7, team);
-        sql.setInt(8, status);
+        sql.setInt(4, permission);
+        sql.setBytes(5, tutor);
+        sql.setBytes(6, team);
+        sql.setInt(7, status);
+        sql.setBytes(8, phone);
         sql.setBytes(9, password);
         sql.executeUpdate();
         sql.close();
     }
-    public void dbInsert(int recordid, int id,java.sql.Date outime) throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
+    public void dbInsert(String table, String field, String values) throws Exception{
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
         }
-        PreparedStatement sql = connect.prepareStatement("insert into AttendanceRecord (recordod, id, outime) values(?, ?, ?)");
+        Statement sql = connect.createStatement();
+        sql.executeQuery("insert into " + table + " (" + field+") "+ " values " + "(" + values + ")");
+    };
+    public void dbInsert(int recordid, int id) throws Exception{
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
+        }
+        PreparedStatement sql = connect.prepareStatement("insert into AttendanceRecord (recordid, id) values(?, ?)");
         sql.setInt(1, recordid);
         sql.setInt(2, id);
-        sql.setDate(3, outime);
-        sql.executeUpdate();
-        sql.close();
-    }
-    public void dbInsert(int id, java.sql.Date occurtime, byte[] behavior) throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
-        }
-        PreparedStatement sql = connect.prepareStatement("insert into IlegalList values(?, ?, ?)");
-        sql.setInt(1, id);
-        sql.setDate(2, occurtime);
-        sql.setBytes(3, behavior);
         sql.executeUpdate();
         sql.close();
     }
     public void dbInsert(int id, byte[] template) throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
         }
+
         PreparedStatement sql = connect.prepareStatement("insert into FingerBase values(?, ?)");
+        ByteArrayInputStream templateStream = new ByteArrayInputStream(template);
         sql.setInt(1, id);
-        sql.setBytes(2, template);
+        sql.setBlob(2, templateStream);
+        templateStream.close();
         sql.executeUpdate();
         sql.close();
     }
     public void dbInsert(int recordid, int id, int week, int totaltime, byte[] comment) throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
         }
         PreparedStatement sql = connect.prepareStatement("insert into AttendanceStatistics values(?, ?, ?, ?, ?)");
         sql.setInt(1, recordid);
@@ -107,43 +107,51 @@ public class DbManager {
         sql.close();
     }
     public void dbUpdate(String table, String field, String value, String condition) throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
         }
         Statement statement = connect.createStatement();
-        statement.executeQuery("update " + table + " set " + field + "=" + value + " where " + condition);
+        statement.execute("update " + table + " set " + field + "=" + value + " where " + condition);
+    }
+    public void dbUpdateChar(String table, String field, String value, String condition) throws Exception{
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
+        }
+        PreparedStatement statement = connect.prepareStatement("update  "+table+" set "+ field + "=? where " + condition);
+        statement.setBytes(1, value.getBytes());
+        statement.executeUpdate();
+        statement.close();
     }
     public void dbDelete(String table, String field, String value)throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
         }
         Statement statement = connect.createStatement();
-        statement.executeQuery("delete from  " + table + " where " + field + "=" + value);
+        statement.execute("delete from  " + table + " where " + field + "=" + value);
     }
     public ResultSet dbSearch(String table, String field, String condition ) throws Exception{
-        if (connect.isClosed()){
-            throw new Exception("Connect Has closed");
+        if ((connect == null) || connect.isClosed()){
+            throw new Exception("数据库连接已被关闭,请重新打开软件!");
         }
         Statement statement = connect.createStatement();
-        ResultSet result = statement.executeQuery("select " + field + " from " + table + " order by id  "+ condition );
+        ResultSet result = statement.executeQuery("select " + field + " from " + table + " " + condition );
         return result;
     }
     public int dbGetMaxId(String table) throws Exception{
         int result = 0;
-        ResultSet resultSet = dbSearch(table, "id", "");
-        while (resultSet.next()){
-            result = resultSet.getInt("id");
-        }
-        result = result+1;
+        ResultSet resultSet = dbSearch(table, "*", "");
+        resultSet.last();
+        result = resultSet.getRow()+1;
         return result;
     }
     public static void main(String[] args){
        try{
            DbManager test = new DbManager();
            test.dbConnect("root", "");
-           test.dbInsert(1, "欧阳炳濠co".getBytes(), "PB16120517".getBytes(), "大四".getBytes(), 0, "王永".getBytes(),
-                   "AI开发".getBytes(), 0, "tlsf,hhzj".getBytes());
-           ResultSet kk =  test.dbSearch("staff","*" ,"");
+           test.dbInsert(2, "欧阳炳濠co".getBytes(), "PB16120517".getBytes(),  0, null,
+                   "人工智能组".getBytes(), 0, null, "tlsf,hhzj".getBytes());
+           Statement xxx = test.connect.createStatement();
+           ResultSet kk =  test.dbSearch("staff","*" ,"where name =  '欧阳炳濠' ");
            while (kk.next()){
                System.out.println(kk.getString("name"));
            }

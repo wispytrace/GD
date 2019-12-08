@@ -1,5 +1,8 @@
 package GD.FingerManager;
 
+import com.sun.crypto.provider.JceKeyStore;
+import com.sun.xml.internal.messaging.saaj.soap.JpegDataContentHandler;
+
 import javax.swing.table.TableCellEditor;
 
 import javax.imageio.ImageIO;
@@ -12,26 +15,54 @@ import javax.swing.table.TableColumn;
 
 import java.awt.*;
 import java.io.FileOutputStream;
+import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class GuiManager {
+    private GuiManager guiManager = this;
     private static final int TOP_CONTAINER_HEIGHT = 960;
     private static final int TOP_CONTAINER_WIDTH = 1280;
-    private static final int WIDITH_FIX = 18;
-    private static final double DIVIDE_RATIO = 0.2;
-    private static JFrame topContainer = null;
-    private static JTabbedPane paneNavigation = null;
-    private static JPanel logoHeader = null;
-    public static JButton login = null;
-    private static JScrollPane statusScroll = null;
-    private static JPanel statusContainer = null;
+    private JFrame topContainer = null;
+    private JTabbedPane paneNavigation = null;
+    private JPanel logoHeader = null;
+    public  JPanel userPanel = null;
+    public  JPanel statusPanel = null;
+    public  JPanel detailResultPanel = null;
+    public  JPanel resultStatis = null;
+    public  JPanel personTable = null;
+    public String userName = null;
+    public int userPemission = 4;
+    private DbManager dbManager = null;
+    private FingerManager fingerManager = null;
+    private WorkThread workThread = null;
+    private EnrollThread enrollThread =null;
+    private ComponentManger componentManger = null;
+
+
+    public void GuiInit(){
+        try {
+        dbManager = new DbManager();
+        fingerManager = new FingerManager();
+        dbManager.dbConnect("root", "");
+        fingerManager.deviceInit();
+        componentManger = new ComponentManger(dbManager, this, fingerManager);
+        componentManger.fingerLoad();
+        workThread = new WorkThread();
+        workThread.WorkThread(guiManager, fingerManager, dbManager, componentManger);
+        workThread.start();
+        this.createMainWindow();
+        }catch (Exception e){
+            showErrorDialog(e.getMessage());
+            System.exit(-1);
+        }
+    }
 
     public void createMainWindow(){
         topContainer = new JFrame("USTC振动与控制科学实验室-考勤系统");
         GridBagLayout frameLayout = new GridBagLayout();
         GridBagConstraints format = new GridBagConstraints();
         topContainer.setLayout(frameLayout);
-
         topContainer.setSize(TOP_CONTAINER_WIDTH,TOP_CONTAINER_HEIGHT);
         topContainer.setLocationRelativeTo(null);
         topContainer.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -62,8 +93,16 @@ public class GuiManager {
         GridBagConstraints format = new GridBagConstraints();
         headerPanel.setLayout(headerLayout);
 
+        userPanel = new JPanel();
         JButton login = new JButton("登陆");
-        login.setContentAreaFilled(false);
+        login.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                createLoginDialog();
+            }
+        });
+//        login.setContentAreaFilled(false);
+        userPanel.add(login);
 
         format.fill = GridBagConstraints.BOTH;
         format.weightx = 10;
@@ -73,10 +112,85 @@ public class GuiManager {
         format.weightx = 1;
         format.gridwidth = 1;
         format.gridwidth = GridBagConstraints.REMAINDER;
-        headerPanel.add(login, format);
+        headerPanel.add(userPanel, format);
         format.weighty = 5;
         headerPanel.add(createSeizePanel(), format);
         return headerPanel;
+    }
+
+    public void createLoginDialog(){
+        JDialog loginDialog = new JDialog(topContainer, "考勤系统登陆", true);
+        loginDialog.setSize(TOP_CONTAINER_WIDTH/2, TOP_CONTAINER_HEIGHT/3);
+        loginDialog.setResizable(false);
+        ImageIcon icon = new ImageIcon("C:\\Users\\10254\\Documents\\GraduateDesign\\最新的 ZKFinger SDK 5.0.0.29\\ZKFinger SDK 5.0.0.29\\Java\\sample\\ZKFinger Demo2\\UiResource\\Icon.jpg");
+        loginDialog.setIconImage(icon.getImage());
+        JLabel name = new JLabel("姓名:");
+        JLabel password = new JLabel("密码:");
+        JTextField nameContent = new JTextField(15);
+        JPasswordField passwordConten = new JPasswordField(15);
+        JButton confirm = new JButton("确定");
+        JButton cancel = new JButton("取消");
+
+        confirm.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    componentManger.login(nameContent, passwordConten, loginDialog);
+                }catch (Exception e){
+                    showErrorDialog(e.getMessage());
+                }
+            }
+        });
+        cancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                loginDialog.dispose();
+            }
+        });
+
+
+
+
+        GridBagLayout loginLayout = new GridBagLayout();
+        GridBagConstraints format = new GridBagConstraints();
+        loginDialog.setLayout(loginLayout);
+
+
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        format.weighty = 0.5;
+        loginDialog.add(createSeizePanel(), format);
+        format.gridwidth = 1;
+        format.weightx = 2;
+        format.weighty = 1;
+        loginDialog.add(createSeizePanel(), format);
+        format.weightx = 1.5;
+        loginDialog.add(name, format);
+        loginDialog.add(nameContent,format);
+        format.weightx = 2;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        loginDialog.add(createSeizePanel(), format);
+
+        format.gridwidth = 1;
+        format.weightx = 2;
+        loginDialog.add(createSeizePanel(), format);
+        format.weightx = 1;
+        loginDialog.add(password, format);
+        loginDialog.add(passwordConten,format);
+        format.weightx = 2;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        loginDialog.add(createSeizePanel(), format);
+
+        format.weightx = 2;
+        format.gridwidth = 1;
+        loginDialog.add(createSeizePanel(), format);
+        format.weightx = 1;
+        loginDialog.add(confirm, format);
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        loginDialog.add(cancel,format);
+
+        loginDialog.setLocationRelativeTo(null);
+        loginDialog.setVisible(true);
+
     }
 
     private JTabbedPane createPaneNavigation(){
@@ -92,12 +206,12 @@ public class GuiManager {
     }
 
     private JPanel ceeatePersonStatus(){
-        JPanel statusPanel = new JPanel(new BorderLayout());
-        JPanel gridPanel = new JPanel(new GridLayout(8, 8));
-        for (int i=0; i<64; i++) {
-            gridPanel.add(new JButton("欧阳炳濠  在线"));
+        statusPanel = new JPanel(new BorderLayout());
+        try {
+            componentManger.statusDisplay(statusPanel);
+        }catch (Exception e){
+            showErrorDialog(e.getMessage());
         }
-        statusPanel.add(gridPanel);
         return statusPanel;
     }
 
@@ -112,11 +226,9 @@ public class GuiManager {
         format.weightx = 1;
         format.gridwidth = GridBagConstraints.REMAINDER;
         format.fill = GridBagConstraints.BOTH;
-//        searchPanel.setBackground(Color.red);
         layout.addLayoutComponent(searchPanel, format);
 
         JPanel resultPanel = createDetailResult();
-//        resultPanel.setBackground(Color.YELLOW);
         format.weightx = 1;
         format.weighty = 6;
         layout.addLayoutComponent(resultPanel, format);
@@ -142,60 +254,43 @@ public class GuiManager {
         JTextField start = new JTextField(10);
         JLabel to = new JLabel("到");
         JTextField end = new JTextField(10);
-        JPanel Seize1 = new JPanel();
-
 
         today.setBorderPainted(false);
         today.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                today.setBackground(Color.gray);
-                yesterday.setBackground(Color.white);
-                week.setBackground(Color.white);
-                month.setBackground(Color.white);
+                componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 0);
             }
         });
         yesterday.setBorderPainted(false);
         yesterday.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                today.setBackground(Color.white);
-                yesterday.setBackground(Color.gray);
-                week.setBackground(Color.white);
-                month.setBackground(Color.white);
+                componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 1);
+
             }
         });
         week.setBorderPainted(false);
         week.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                today.setBackground(Color.white);
-                yesterday.setBackground(Color.white);
-                week.setBackground(Color.gray);
-                month.setBackground(Color.white);
+                componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 2);
             }
         });
         month.setBorderPainted(false);
         month.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                today.setBackground(Color.white);
-                yesterday.setBackground(Color.white);
-                week.setBackground(Color.white);
-                month.setBackground(Color.gray);
+                componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 3);
+
             }
         });
-
-        Seize1.setOpaque(false);
 
         start.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent focusEvent) {
-                today.setBackground(Color.white);
-                yesterday.setBackground(Color.white);
-                week.setBackground(Color.white);
-                month.setBackground(Color.white);
                 start.setText(new DatePicker(clock).setPickedDate());
+                componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 4);
                 start.setFocusable(false);
                 start.setFocusable(true);
             }
@@ -206,11 +301,8 @@ public class GuiManager {
         end.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent focusEvent) {
-                today.setBackground(Color.white);
-                yesterday.setBackground(Color.white);
-                week.setBackground(Color.white);
-                month.setBackground(Color.white);
                 end.setText(new DatePicker(clock).setPickedDate());
+                componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 5);
                 end.setFocusable(false);
                 end.setFocusable(true);
             }
@@ -218,141 +310,124 @@ public class GuiManager {
             public void focusLost(FocusEvent focusEvent) {
             }
         });
-
+        componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 0);
+        //LayOut
         format.weighty = 1;
         format.weightx = 1;
-        searchLayout.addLayoutComponent(time, format);
-        searchLayout.addLayoutComponent(today, format);
-        searchLayout.addLayoutComponent(yesterday, format);
-        searchLayout.addLayoutComponent(week, format);
-        searchLayout.addLayoutComponent(month, format);
-        searchLayout.addLayoutComponent(start,format);
-        searchLayout.addLayoutComponent(end, format);
+        searchPanel.add(time, format);
+        searchPanel.add(today, format);
+        searchPanel.add(yesterday, format);
+        searchPanel.add(week, format);
+        searchPanel.add(month, format);
+        searchPanel.add(start,format);
         format.weightx = 0.3;
-        searchLayout.addLayoutComponent(to, format);
+        searchPanel.add(to, format);
+        format.weightx = 1;
+        searchPanel.add(end, format);
         format.weightx = 6;
         format.gridwidth = GridBagConstraints.REMAINDER;
-        searchLayout.addLayoutComponent(Seize1, format);
-        searchPanel.add(time);
-        searchPanel.add(today);
-        searchPanel.add(yesterday);
-        searchPanel.add(week);
-        searchPanel.add(month);
-        searchPanel.add(start);
-        searchPanel.add(to);
-        searchPanel.add(end);
-        searchPanel.add(Seize1);
+        searchPanel.add(createSeizePanel(), format);
 
 
         JLabel status = new JLabel("状态");
         JButton normal = new JButton("正常");
         JButton abnormal = new JButton("异常");
-        JPanel Seize2 = new JPanel();
-        Seize2.setOpaque(false);
         normal.setBorderPainted(false);
         normal.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                normal.setBackground(Color.gray);
-                abnormal.setBackground(Color.white);
+                componentManger.setDetailStatusSelectButton(normal, abnormal, 0);
             }
         });
         abnormal.setBorderPainted(false);
         abnormal.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                abnormal.setBackground(Color.gray);
-                normal.setBackground(Color.white);
+                componentManger.setDetailStatusSelectButton(normal, abnormal, 1);
             }
         });
+        componentManger.setDetailStatusSelectButton(normal, abnormal, 0);
+
+        //LayOut
         format.weightx = 1;
         format.weighty = 1;
         format.gridwidth = 1;
-        searchLayout.addLayoutComponent(status, format);
-        searchLayout.addLayoutComponent(normal, format);
-        searchLayout.addLayoutComponent(abnormal, format);
+        searchPanel.add(status, format);
+        searchPanel.add(normal, format);
+        searchPanel.add(abnormal, format);
         format.gridwidth = GridBagConstraints.REMAINDER;
-        searchLayout.addLayoutComponent(Seize2, format);
-        searchPanel.add(status);
-        searchPanel.add(normal);
-        searchPanel.add(abnormal);
-        searchPanel.add(Seize2);
+        searchPanel.add(createSeizePanel(), format);
 
 
         JLabel team = new JLabel("组别");
-        JPanel Seize3 = new JPanel();
-        Seize3.setOpaque(false);
-        String[] teamList = new String[]{"全部", "电机组", "人工智能组", "分数阶控制组"};
-        JComboBox<String> teamSelect = new JComboBox<String>(teamList);
-//        teamSelect.addItemListener(new ItemListener(){
-//            public void itemStateChanged(ItemEvent e) {
-//                // 只处理选中的状态
-//                if (e.getStateChange() == ItemEvent.SELECTED) {
-//                    System.out.println("选中: " + teamSelect.getSelectedIndex() + " = " + comboBox.getSelectedItem());
-//                }
-//            }
-//        });
+        try {
+            String[] teamList = componentManger.getDetailGroupContent();
+            JComboBox<String> teamSelect = new JComboBox<String>(teamList);
+
+        teamSelect.addItemListener(new ItemListener(){
+            public void itemStateChanged(ItemEvent e) {
+                // 只处理选中的状态
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    componentManger.setDetailTeamChoose(teamSelect.getSelectedItem().toString());
+                }
+            }
+        });
         format.gridwidth = 1;
         format.weightx = 1;
-        searchLayout.addLayoutComponent(team, format);
+        searchPanel.add(team, format);
         format.gridwidth = 2;
         format.fill = GridBagConstraints.HORIZONTAL;
-        searchLayout.addLayoutComponent(teamSelect, format);
+        searchPanel.add(teamSelect, format);
         format.gridwidth = GridBagConstraints.REMAINDER;
-        searchLayout.addLayoutComponent(Seize3, format);
-        searchPanel.add(team);
-        searchPanel.add(teamSelect);
-        searchPanel.add(Seize3);
+        searchPanel.add(createSeizePanel(), format);
 
         JButton search = new JButton("搜索");
         JButton reset = new JButton("重置");
-        JPanel Seize4 = new JPanel();
-        Seize4.setOpaque(false);
+
+        search.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    componentManger.doDetailSearch(detailResultPanel);
+                }catch (Exception e){
+                    showErrorDialog(e.getMessage());
+                }
+            }
+        });
+        reset.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                componentManger.setDetailTimeSelectButton(today, yesterday, week, month, start, end, 0);
+                componentManger.setDetailStatusSelectButton(normal, abnormal, 0);
+                componentManger.setDetailTeamChoose("全部");
+                teamSelect.setSelectedIndex(0);
+            }
+        });
         format.gridwidth = 8;
         format.weightx = 1;
         format.weighty = 1.5;
         format.fill = GridBagConstraints.NONE;
-        searchLayout.addLayoutComponent(Seize4, format);
+        searchPanel.add(createSeizePanel(), format);
         format.weightx = 1;
-        searchLayout.addLayoutComponent(search, format);
-        searchLayout.addLayoutComponent(reset, format);
-        searchPanel.add(Seize4);
-        searchPanel.add(search);
-        searchPanel.add(reset);
+        searchPanel.add(search, format);
+        searchPanel.add(reset, format);
+
+
+        }catch (Exception e){
+            showErrorDialog(e.getMessage());
+        }
 
         return  searchPanel;
     }
 
     private JPanel createDetailResult(){
-        String[] columnsName = new String[]{"日期", "姓名", "上线时间", "下线时间", "状态", "小组"};
-        Object[][] rowData = {
-                {1, "张三", 80, 80, 80, 240},
-                {2, "John", 70, 80, 90, 240},
-                {3, "Sue", 70, 70, 70, 210},
-                {4, "Jane", 80, 70, 60, 210},
-                {5, "Joe_05", 80, 70, 60, 210},
-                {6, "Joe_06", 80, 70, 60, 210},
-                {7, "Joe_07", 80, 70, 60, 210},
-                {8, "Joe_08", 80, 70, 60, 210},
-                {9, "Joe_09", 80, 70, 60, 210},
-                {10, "Joe_10", 80, 70, 60, 210},
-                {11, "Joe_11", 80, 70, 60, 210},
-                {12, "Joe_12", 80, 70, 60, 210},
-                {13, "Joe_13", 80, 70, 60, 210},
-                {14, "Joe_14", 80, 70, 60, 210},
-                {15, "Joe_15", 80, 70, 60, 210},
-                {16, "Joe_16", 80, 70, 60, 210},
-                {17, "Joe_17", 80, 70, 60, 210},
-                {18, "Joe_18", 80, 70, 60, 210},
-                {19, "Joe_19", 80, 70, 60, 210},
-                {20, "Joe_20", 80, 70, 60, 210},
-                {17, "Joe_17", 80, 70, 60, 210},
-                {18, "Joe_18", 80, 70, 60, 210},
-                {19, "Joe_19", 80, 70, 60, 210},
-                {20, "Joe_20", 80, 70, 60, 210}
-        };
-        JPanel resultPanel = createTable(columnsName, rowData);
-        return resultPanel;
+        detailResultPanel = new JPanel(new BorderLayout());
+        try {
+            componentManger.doDetailSearch(detailResultPanel);
+        }catch (Exception e){
+            showErrorDialog(e.getMessage());
+        }
+        return detailResultPanel;
     }
 
     private JPanel createAttenStastis(){
@@ -360,17 +435,28 @@ public class GuiManager {
         GridBagLayout statisLayout = new GridBagLayout();
         GridBagConstraints format = new GridBagConstraints();
         statisPanel.setLayout(statisLayout);
-
+        try{
         JLabel name = new JLabel("姓名:");
-        JTextField nameContent = new JTextField(10);
+            String[] nameList = componentManger.getAllStaffName();
+            JComboBox<String> nameSelect = new JComboBox<String>(nameList);
+
+            nameSelect.addItemListener(new ItemListener() {
+                public void itemStateChanged(ItemEvent e) {
+                    // 只处理选中的状态
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        componentManger.setStasticNameChoose(nameSelect.getSelectedItem().toString());
+                    }
+                }
+            });
         format.weightx = 0.2;
         format.weighty = 1;
         statisPanel.add(name, format);
         format.weightx = 1;
-        statisPanel.add(nameContent, format);
+        statisPanel.add(nameSelect, format);
         format.weightx = 30;
         format.gridwidth = GridBagConstraints.REMAINDER;
         statisPanel.add(createSeizePanel(), format);
+
 
         JLabel time = new JLabel("时间范围:");
         JButton week = new JButton("上一周");
@@ -382,12 +468,19 @@ public class GuiManager {
         JButton output  = new JButton("导出");
         JButton reset = new JButton("重置");
 
+        week.setBorderPainted(false);
+
+        week.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                componentManger.setStasticTimeChoose(week, start, end, 0);
+            }
+        });
         start.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent focusEvent) {
-                week.setBackground(Color.white);
-
                 start.setText(new DatePicker(clock).setPickedDate());
+                componentManger.setStasticTimeChoose(week, start, end, 1);
                 start.setFocusable(false);
                 start.setFocusable(true);
             }
@@ -398,9 +491,8 @@ public class GuiManager {
         end.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent focusEvent) {
-
-                week.setBackground(Color.white);
                 end.setText(new DatePicker(clock).setPickedDate());
+                componentManger.setStasticTimeChoose(week, start, end, 2);
                 end.setFocusable(false);
                 end.setFocusable(true);
             }
@@ -408,6 +500,36 @@ public class GuiManager {
             public void focusLost(FocusEvent focusEvent) {
             }
         });
+        reset.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                nameSelect.setSelectedIndex(0);
+                componentManger.setStasticNameChoose(nameSelect.getSelectedItem().toString());
+                componentManger.setStasticTimeChoose(week, start, end, 0);
+            }
+        });
+        search.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    componentManger.doStasticSearch(resultStatis);
+                }catch (Exception e){
+                    showErrorDialog(e.getMessage());
+                }
+            }
+        });
+        output.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+
+            }
+        });
+
+        nameSelect.setSelectedIndex(0);
+        componentManger.setStasticNameChoose(nameSelect.getSelectedItem().toString());
+        componentManger.setStasticTimeChoose(week, start, end, 0);
+
+
         format.gridwidth = 1;
         format.weightx = 0.2;
         statisPanel.add(time, format);
@@ -430,58 +552,32 @@ public class GuiManager {
         format.gridwidth = GridBagConstraints.REMAINDER;
         statisPanel.add(output, format);
 
-//        JPanel resultStatis = createPersonalStatis(new String[]{"0", "0", "未达标", "0"});
-        JPanel resultStatis = createAllStatis();
+//        resultStatis = createPersonalStatis(new String[]{"0", "0", "未达标", "0"});
+        resultStatis = createAllStatis();
         format.weightx = 1;
         format.weighty = 12;
-//        format.gridheight = 15;
         format.fill = GridBagConstraints.BOTH;
         statisPanel.add(resultStatis, format);
 
-
+        }catch (Exception e){
+            showErrorDialog(e.getMessage());
+        }
         return statisPanel;
     }
 
     private JPanel createAllStatis(){
         // 表头（列名）
-        String[] columnNames = {"时间段" ,"姓名", "考勤总时间", "考勤总次数", "评价", "异常记录次数"};
-        Object[][] rowData = {
-                {1, "张三", 80, 80, 80, 240},
-                {2, "John", 70, 80, 90, 240},
-                {3, "Sue", 70, 70, 70, 210},
-                {4, "Jane", 80, 70, 60, 210},
-                {5, "Joe_05", 80, 70, 60, 210},
-                {6, "Joe_06", 80, 70, 60, 210},
-                {7, "Joe_07", 80, 70, 60, 210},
-                {8, "Joe_08", 80, 70, 60, 210},
-                {9, "Joe_09", 80, 70, 60, 210},
-                {10, "Joe_10", 80, 70, 60, 210},
-                {11, "Joe_11", 80, 70, 60, 210},
-                {12, "Joe_12", 80, 70, 60, 210},
-                {13, "Joe_13", 80, 70, 60, 210},
-                {14, "Joe_14", 80, 70, 60, 210},
-                {15, "Joe_15", 80, 70, 60, 210},
-                {16, "Joe_16", 80, 70, 60, 210},
-                {17, "Joe_17", 80, 70, 60, 210},
-                {18, "Joe_18", 80, 70, 60, 210},
-                {19, "Joe_19", 80, 70, 60, 210},
-                {20, "Joe_20", 80, 70, 60, 210},
-                {17, "Joe_17", 80, 70, 60, 210},
-                {18, "Joe_18", 80, 70, 60, 210},
-                {19, "Joe_19", 80, 70, 60, 210},
-                {20, "Joe_20", 80, 70, 60, 210}
-        };
-
-        return createTable(columnNames, rowData);
+        String[] columnNames = {"时间段" ,"姓名", "考勤总时间/小时", "考勤总次数", "评价", "异常记录次数"};
+        Object[][] rowData = {{"","","","","",""}};
+        return createTable(columnNames, rowData, false);
     }
 
-    private JPanel createPersonalStatis(String[] message){
+    public JPanel createPersonalStatis(String[] message, ArrayList dateList){
         JPanel resultStatis = new JPanel();
         GridBagLayout layout = new GridBagLayout();
         GridBagConstraints format = new GridBagConstraints();
         resultStatis.setLayout(layout);
-//        resultStatis.setBackground(Color.blue);
-        JLabel totalTimeLabel = new JLabel("考勤总时间:");
+        JLabel totalTimeLabel = new JLabel("考勤总时间/小时:");
         JLabel totalTimesLabel = new JLabel("进出总次数:");
         JLabel commentLabel = new JLabel("评价:");
         JLabel abornomalLabel = new JLabel("异常记录次数");
@@ -522,7 +618,7 @@ public class GuiManager {
         format.weightx = 6;
         resultStatis.add(createSeizePanel(), format);
 
-        JPanel calendar = new DateCalendar();
+        JPanel calendar = new DateCalendar(dateList);
         format.weightx = 1;
         format.weighty = 10;
         format.fill = GridBagConstraints.BOTH;
@@ -532,48 +628,246 @@ public class GuiManager {
         return resultStatis;
     }
 
+    public void createEnrollDialog(){
+        JDialog enrollDialog = new JDialog(topContainer, "人员录入", true);
+        enrollDialog.setSize(TOP_CONTAINER_WIDTH*3/5, TOP_CONTAINER_HEIGHT*3/5);
+        enrollDialog.setResizable(false);
+        GridBagLayout enrollLayout = new GridBagLayout();
+        enrollDialog.setLayout(enrollLayout);
+        GridBagConstraints format = new GridBagConstraints();
+        ImageIcon icon = new ImageIcon("C:\\Users\\10254\\Documents\\GraduateDesign\\最新的 ZKFinger SDK 5.0.0.29\\ZKFinger SDK 5.0.0.29\\Java\\sample\\ZKFinger Demo2\\UiResource\\Icon.jpg");
+        enrollDialog.setIconImage(icon.getImage());
+
+        JLabel message = new JLabel("请输入下列相关信息,并输入三次指纹。含有*号的选项不可以为空,权限设置中(0-最高级, 1-管理级, 2-一般用户)");
+        message.setFont(new Font(null, Font.BOLD, 14));
+        format.weightx = 2;
+        format.weighty = 1;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        enrollDialog.add(message, format);
+
+        JPanel imgPanel = new JPanel(new BorderLayout());
+        JButton imgbtn = new JButton();
+        imgbtn.setDefaultCapable(false);
+        imgPanel.add(imgbtn);
+
+        JPanel infPanel = new JPanel(new GridBagLayout());
+        JLabel name = new JLabel("姓名*");
+        JTextField nameContent = new JTextField(20);
+        JLabel sno = new JLabel("学号*");
+        JTextField snoContent = new JTextField(20);
+        JLabel permission = new JLabel("权限设置*");
+        JTextField permissionContent = new JTextField(20);
+        JLabel tutor = new JLabel("导师");
+        JTextField tutorContent = new JTextField(20);
+        JLabel team = new JLabel("小组");
+        JTextField teamContent = new JTextField(20);
+        JLabel phone = new JLabel("手机号码");
+        JTextField phoneContent = new JTextField(20);
+        JLabel password = new JLabel("密码设置*");
+        JPasswordField passwordContent = new JPasswordField(20);
+        JLabel passwrodAgain = new JLabel("请再确认密码*");
+        JPasswordField passwordAgainContent = new JPasswordField(20);
+        quickLayout(infPanel, name, nameContent);
+        quickLayout(infPanel, sno, snoContent);
+        quickLayout(infPanel, permission, permissionContent);
+        quickLayout(infPanel, tutor, tutorContent);
+        quickLayout(infPanel, team, teamContent);
+        quickLayout(infPanel, phone, phoneContent);
+        quickLayout(infPanel, password, passwordContent);
+        quickLayout(infPanel, passwrodAgain, passwordAgainContent);
+
+        format.weighty = 2;
+        format.gridwidth = 1;
+        format.weightx = 1;
+        format.fill = GridBagConstraints.BOTH;
+        enrollDialog.add(infPanel, format);
+        format.weightx = 1;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        enrollDialog.add(imgPanel, format);
+
+        JButton confirm = new JButton("确认");
+        JButton cancel = new JButton("取消");
+
+        confirm.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    byte[] template = enrollThread.getTemplate();
+                    componentManger.doPersonEnroll(new String[]{nameContent.getText(), snoContent.getText(), permissionContent.getText(),
+                            tutorContent.getText(), teamContent.getText(), phoneContent.getText(), passwordContent.getText(), passwordAgainContent.getText()},template);
+                    if ((enrollThread != null) && (enrollThread.isAlive())){
+                        enrollThread.stop();
+                        enrollThread = null;
+                    }
+                }catch (Exception e){
+                    showMessageDialog(e.getMessage());
+                }
+            }
+        });
+        cancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if ((enrollThread != null )&&(enrollThread.isAlive())) {
+                    enrollThread.stop();
+                    enrollThread = null;
+                }
+                workThread = new WorkThread();
+                workThread.WorkThread(guiManager, fingerManager, dbManager, componentManger);
+                workThread.start();
+                enrollDialog.dispose();
+            }
+        });
+
+        format.fill = GridBagConstraints.NONE;
+        format.weighty = 1;
+        format.gridwidth = 1;
+        enrollDialog.add(confirm, format);
+        enrollDialog.add(cancel, format);
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        enrollDialog.add(createSeizePanel(), format);
+
+        if ((workThread != null )&&(workThread.isAlive())) {
+            workThread.stop();
+        }
+        if ((enrollThread == null) || (!enrollThread.isAlive())){
+            enrollThread = new EnrollThread();
+            enrollThread.EnrollThread(guiManager, fingerManager, dbManager, imgbtn);
+            enrollThread.start();
+        }
+        enrollDialog.setLocationRelativeTo(null);
+        enrollDialog.setVisible(true);
+    }
+
+    private void quickLayout(JPanel infPanel ,JComponent label, JComponent content){
+        GridBagConstraints format = new GridBagConstraints();
+        format.weightx = 1;
+        infPanel.add(label, format);
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        infPanel.add(content, format);
+        infPanel.add(createSeizePanel(), format);
+    }
+
     private JPanel createPersonMangager(){
         JPanel perosonManger = new JPanel();
         GridBagLayout personLayout = new GridBagLayout();
         perosonManger.setLayout(personLayout);
         GridBagConstraints format = new GridBagConstraints();
         JButton enroll = new JButton("新增成员");
+        enroll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                createEnrollDialog();
+            }
+        });
+
         format.fill = GridBagConstraints.BOTH;
         format.weightx = 1;
         format.weighty = 4;
         format.gridwidth = GridBagConstraints.REMAINDER;
         perosonManger.add(enroll, format);
         format.weighty = 10;
-        Object[][] rowData = {
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230},
-                {1, "张三", 80, 80, 80, 240,230}
-        };
-        JPanel personTable = createTable(new String[]{"编号", "姓名", "小组", "导师", "学号", "手机号码", "操作"}, rowData);
-        perosonManger.add(personTable, format);
+        try {
+            personTable = new JPanel(new BorderLayout());
+            componentManger.createPersonTable(personTable);
+            perosonManger.add(personTable, format);
+        }catch (Exception e){
+            showErrorDialog(e.getMessage());
+        }
         return perosonManger;
+    }
+
+    public void createModifyDialog(String id){
+        JDialog modyfyDialog = new JDialog(topContainer, "人员信息修改", true);
+        modyfyDialog.setSize(TOP_CONTAINER_WIDTH*3/5, TOP_CONTAINER_HEIGHT*3/5);
+        modyfyDialog.setResizable(false);
+        GridBagLayout enrollLayout = new GridBagLayout();
+        modyfyDialog.setLayout(enrollLayout);
+        GridBagConstraints format = new GridBagConstraints();
+        ImageIcon icon = new ImageIcon("C:\\Users\\10254\\Documents\\GraduateDesign\\最新的 ZKFinger SDK 5.0.0.29\\ZKFinger SDK 5.0.0.29\\Java\\sample\\ZKFinger Demo2\\UiResource\\Icon.jpg");
+        modyfyDialog.setIconImage(icon.getImage());
+
+        JLabel message = new JLabel("请修改下列的相关信息");
+        message.setFont(new Font(null, Font.BOLD, 14));
+        format.weightx = 2;
+        format.weighty = 1;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        modyfyDialog.add(message, format);
+
+        JPanel infPanel = new JPanel(new GridBagLayout());
+        JLabel name = new JLabel("姓名*");
+        JTextField nameContent = new JTextField(20);
+        JLabel sno = new JLabel("学号*");
+        JTextField snoContent = new JTextField(20);
+        JLabel permission = new JLabel("权限设置*");
+        JTextField permissionContent = new JTextField(20);
+        JLabel tutor = new JLabel("导师");
+        JTextField tutorContent = new JTextField(20);
+        JLabel team = new JLabel("小组");
+        JTextField teamContent = new JTextField(20);
+        JLabel phone = new JLabel("手机号码");
+        JTextField phoneContent = new JTextField(20);
+        JLabel password = new JLabel("密码设置*");
+        JPasswordField passwordContent = new JPasswordField(20);
+        JLabel passwrodAgain = new JLabel("请再确认密码*");
+        JPasswordField passwordAgainContent = new JPasswordField(20);
+        quickLayout(infPanel, name, nameContent);
+        quickLayout(infPanel, sno, snoContent);
+        quickLayout(infPanel, permission, permissionContent);
+        quickLayout(infPanel, tutor, tutorContent);
+        quickLayout(infPanel, team, teamContent);
+        quickLayout(infPanel, phone, phoneContent);
+        quickLayout(infPanel, password, passwordContent);
+        quickLayout(infPanel, passwrodAgain, passwordAgainContent);
+
+        format.weighty = 2;
+        format.gridwidth = 1;
+        format.weightx = 1;
+        format.fill = GridBagConstraints.BOTH;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        modyfyDialog.add(infPanel, format);
+        format.weightx = 1;
+
+        JButton confirm = new JButton("确认");
+        JButton cancel = new JButton("取消");
+        JButton delete = new JButton("删除");
+        confirm.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    componentManger.doPersonModyify(new String[]{nameContent.getText(), snoContent.getText(), permissionContent.getText(),
+                            tutorContent.getText(), teamContent.getText(), phoneContent.getText(), passwordContent.getText(), passwordAgainContent.getText()},id);
+                }catch (Exception e){
+                    showMessageDialog(e.getMessage());
+                }
+            }
+        });
+        cancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                modyfyDialog.dispose();
+            }
+        });
+        delete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try{
+                    componentManger.deletePersonInfo(id);
+                }catch (Exception e){
+                    guiManager.showErrorDialog(e.getMessage());
+                }
+            }
+        });
+        format.fill = GridBagConstraints.NONE;
+        format.weighty = 1;
+        format.gridwidth = 1;
+        modyfyDialog.add(confirm, format);
+        modyfyDialog.add(cancel, format);
+        modyfyDialog.add(delete, format);
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        modyfyDialog.add(createSeizePanel(), format);
+
+        modyfyDialog.setLocationRelativeTo(null);
+        modyfyDialog.setVisible(true);
     }
 
     private JPanel createSystemSet(){
@@ -581,11 +875,15 @@ public class GuiManager {
         GridBagLayout sysLayout = new GridBagLayout();
         GridBagConstraints format = new GridBagConstraints();
         sysPanel.setLayout(sysLayout);
-
         JLabel startTime = new JLabel("打卡起始时间");
-        JTextField start = new JTextField(10);
+        String[] timeList = new String[]{"6:00", "6:30", "7:00", "7:30", "8:00", "8:30", "9:00", "9:30", "10:00", "10:30", "11:00", "11:30", "12:00",
+        "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00",
+        "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30", "24:00"};
+        JComboBox<String> start = new JComboBox<String>(timeList);
         JLabel endTime = new JLabel("打卡终止时间");
-        JTextField end = new JTextField(10);
+        JComboBox<String> end = new JComboBox<String>(timeList);
+        start.setSelectedIndex(5);
+        end.setSelectedIndex(35);
         format.weightx = 1;
         format.weighty = 1;
         sysPanel.add(startTime, format);
@@ -601,19 +899,95 @@ public class GuiManager {
         sysPanel.add(end, format);
         format.gridwidth = GridBagConstraints.REMAINDER;
         sysPanel.add(createSeizePanel(), format);
-
+        format.weightx = 1;
+        format.gridwidth = 2;
         JButton save = new JButton("保存");
+        save.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    if ((end.getSelectedIndex() - start.getSelectedIndex()) <= 0){
+                        throw new Exception("请选择正确的时间范围");
+                    }
+                    componentManger.setCheckTime(start.getSelectedItem().toString(), end.getSelectedItem().toString());
+                }catch (Exception e){
+                    showErrorDialog(e.getMessage());
+                }
+            }
+        });
         sysPanel.add(save, format);
-        format.weighty = 10;
+        format.gridwidth = GridBagConstraints.REMAINDER;
         sysPanel.add(createSeizePanel(), format);
 
+
+        JLabel group = new JLabel("小组设置");
+        JTextField groupContent = new JTextField(20);
+        format.weightx = 1;
+        format.gridwidth = 1;
+        sysPanel.add(group, format);
+        sysPanel.add(groupContent, format);
+        format.weightx = 8;
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        sysPanel.add(createSeizePanel(), format);
+
+        JButton delete = new JButton("删除");
+        JButton add = new JButton("增加");
+
+        add.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    componentManger.addTeam(groupContent.getText());
+                }catch (Exception e){
+                    showErrorDialog(e.getMessage());
+                }
+            }
+        });
+        delete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try{
+                    componentManger.deleteTeam(groupContent.getText());
+                }catch (Exception e){
+                    showErrorDialog(e.getMessage());
+                }
+            }
+        });
+
+        format.weightx = 1;
+        format.gridwidth = 1;
+        sysPanel.add(add, format);
+        sysPanel.add(delete, format);
+        format.gridwidth = GridBagConstraints.REMAINDER;
+        sysPanel.add(createSeizePanel(), format);
+
+        format.weighty = 10;
+        sysPanel.add(createSeizePanel(), format);
 
 
 
         return sysPanel;
     }
 
-    private JPanel createTable(String[] columnNames, Object[][] rowData){
+    public void showErrorDialog(String message){
+        JOptionPane.showMessageDialog(
+                topContainer,
+                message,
+                "错误提示",
+                JOptionPane.WARNING_MESSAGE
+        );
+    }
+
+    public void showMessageDialog(String message){
+        JOptionPane.showMessageDialog(
+                topContainer,
+                message,
+                "消息提示",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    public JPanel createTable(String[] columnNames, Object[][] rowData, boolean isOperation){
         JPanel tableContainer = new JPanel(new BorderLayout());
 //        GridBagLayout tableLayout = new GridBagLayout();
 //        GridBagConstraints format = new GridBagConstraints();
@@ -643,7 +1017,12 @@ public class GuiManager {
             }
             @Override
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return columnIndex == 6;
+                if ((columnIndex == 6) && (isOperation == true)) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
         });
 //        table.getColumnModel().getColumn(6).setCellEditor();
@@ -665,30 +1044,28 @@ public class GuiManager {
 
         // 第一列列宽设置为40
         table.getColumnModel().getColumn(0).setPreferredWidth(40);
-        MyTableCellRenderer renderer = new MyTableCellRenderer();
+        MyTableCellRenderer renderer = new MyTableCellRenderer(isOperation);
         for (int i =0; i < columnNames.length; i++ ){
             TableColumn tableColumn = table.getColumn(columnNames[i]);
             // 设置 表格列 的 单元格渲染器
             tableColumn.setCellRenderer(renderer);
         }
-        if (columnNames.length>=7){
-            table.getColumnModel().getColumn(6).setCellEditor(new MyButtonEditor());
+        if (isOperation){
+            table.getColumnModel().getColumn(6).setCellEditor(new MyButtonEditor(guiManager));
         }        // 设置滚动面板视口大小（超过该大小的行数据，需要拖动滚动条才能看到）
-//        table.setPreferredScrollableViewportSize(new Dimension(400, 300));
         JScrollPane scrollPane = new JScrollPane(table);
-//        format.weightx = 1;
-//        format.weighty = 10;
-//        format.gridwidth = GridBagConstraints.REMAINDER;
-//        format.fill = GridBagConstraints.BOTH;
+
         tableContainer.add(scrollPane);
-//        format.weighty = 2;
-//        tableContainer.add(createSeizePanel(), format);
         return tableContainer;
     }
     private static class MyTableCellRenderer extends DefaultTableCellRenderer {
         /**
          * 返回默认的表单元格渲染器，此方法在父类中已实现，直接调用父类方法返回，在返回前做相关参数的设置即可
          */
+        private boolean isOperation = false;
+        public MyTableCellRenderer(boolean isOperation){
+            this.isOperation = isOperation;
+        }
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             // 偶数行背景设置为白色，奇数行背景设置为灰色
@@ -708,7 +1085,7 @@ public class GuiManager {
             }
 
             // 设置提示文本，当鼠标移动到当前(row, column)所在单元格时显示的提示文本
-            setToolTipText("提示的内容: " + row + ", " + column);
+//            setToolTipText("提示的内容: " + row + ", " + column);
 
             // PS: 多个单元格使用同一渲染器时，需要自定义的属性，必须每次都设置，否则将自动沿用上一次的设置。
 
@@ -724,7 +1101,7 @@ public class GuiManager {
              */
 
             // 调用父类的该方法完成渲染器的其他设置
-            if (column == 6){
+            if ((column == 6)&&isOperation){
                 JButton update = new JButton("修改");
                 return update;
             }
@@ -735,38 +1112,28 @@ public class GuiManager {
         /**
          * serialVersionUID
          */
-        private static final long serialVersionUID = -6546334664166791132L;
-
+//        private static final long serialVersionUID = -6546334664166791132L;
         private JPanel panel;
-
         private JButton button;
-
-        private int num;
-
-        public MyButtonEditor() {
+        private String  id;
+        private GuiManager guiManager = null;
+        public MyButtonEditor(GuiManager guiManager) {
             initButton();
             initPanel();
             panel.add(this.button, BorderLayout.CENTER);
+            this.guiManager = guiManager;
         }
 
         private void initButton() {
-            button = new JButton();
+            button = new JButton("修改");
 
             button.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    int res = JOptionPane.showConfirmDialog(null,
-                            "Do you want to add 1 to it?", "choose one",
-                            JOptionPane.YES_NO_OPTION);
-
-                    if(res ==  JOptionPane.YES_OPTION){
-                        num++;
-                    }
-                    //stopped!!!!
+//                    //stopped!!!!
+                    guiManager.createModifyDialog(id);
                     fireEditingStopped();
-
                 }
             });
-
         }
 
         private void initPanel() {
@@ -778,20 +1145,14 @@ public class GuiManager {
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value,
                                                      boolean isSelected, int row, int column) {
-            num = (Integer) value;
-
-            button.setText(value == null ? "" : String.valueOf(value));
-
+            id = value.toString();
             return panel;
         }
-
         @Override
         public Object getCellEditorValue() {
-            return num;
+            return id;
         }
     }
-
-
 
 
 
@@ -800,7 +1161,7 @@ public class GuiManager {
     public static void main(String args[]){
         try {
             GuiManager test = new GuiManager();
-            test.createMainWindow();
+            test.GuiInit();
         }catch (Exception e){
             e.printStackTrace();
         }

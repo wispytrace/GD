@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class DateCalendar extends JPanel {
@@ -12,9 +13,10 @@ public class DateCalendar extends JPanel {
     int year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
     JLabel dateDsiplay = new JLabel("", JLabel.CENTER);
     JButton[] button = new JButton[49];
-    String[] checkDays = new String[]{"2019-11-24", "2019-11-23", "2019-11-21"};
+    ArrayList checkDays = null;
 
-    public DateCalendar() {
+    public DateCalendar(ArrayList dateList) {
+        checkDays = dateList;
         String[] header = { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六" };
         JPanel p1 = new JPanel(new GridLayout(7, 7));
 
@@ -61,39 +63,37 @@ public class DateCalendar extends JPanel {
         displayDate();
         this.setVisible(true);
     }
-    public void parseDate(){
-        try {
-            DateFormat myFormat = new java.text.SimpleDateFormat("yyyy-MM-MM");
-            Date mydate = myFormat.parse(checkDays[0]);
-            int myMonth = mydate.getMonth();
-            int myDay = mydate.getDay();
-            int myYear = mydate.getYear();
-        }catch (Exception e){}
 
+    private int[] dateParse(String date){
+        int[] dateNum = new int[3];
+        dateNum[0] = Integer.parseInt(date.substring(0, 4));
+        dateNum[1] = Integer.parseInt(date.substring(5, 7)) - 1;
+        dateNum[2] = Integer.parseInt(date.substring(8, 10));
+
+        return dateNum;
     }
-    public void displayDate() {
-        for (int x = 7; x < button.length; x++)
+
+    private void displayDate() {
+        for (int x = 7; x < button.length; x++) {
             button[x].setText("");
+        }
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat(
                 "yyyy MMMM");
         java.util.Calendar cal = java.util.Calendar.getInstance();
         cal.set(year, month, 1);
         int dayOfWeek = cal.get(java.util.Calendar.DAY_OF_WEEK);
         int daysInMonth = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
-
-
-        int myMonth = Integer.parseInt(checkDays[0].substring(5, 7)) - 1;
-        int myDay = Integer.parseInt(checkDays[0].substring(8, 10));
-        int myYear = Integer.parseInt(checkDays[1].substring(0, 4));
-
-
-
-        for (int x = 6 + dayOfWeek, day = 1; day <= daysInMonth; x++, day++) {
-            button[x].setText("" + day);
+        for (int x = 0; x < button.length; x++){
             button[x].setBackground(Color.white);
         }
-        if((myYear == year) && (myMonth == month)){
-            button[6+dayOfWeek+myDay-1].setBackground(Color.red);
+        for (int x = 6 + dayOfWeek, day = 1; day <= daysInMonth; x++, day++) {
+            button[x].setText("" + day);
+        }
+        for (int i=0; i<checkDays.size(); i++) {
+            int[] dateNum =  dateParse(checkDays.get(i).toString());
+            if ((dateNum[0] == year) && (dateNum[1] == month)) {
+                button[6 + dayOfWeek + dateNum[2] - 1].setBackground(Color.red);
+            }
         }
         dateDsiplay.setText(sdf.format(cal.getTime()));
     }
