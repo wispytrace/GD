@@ -5,6 +5,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -317,12 +319,64 @@ public class ComponentManger {
         return result;
     }
 
+    public String[] getPersonStastic(String name, ArrayList record) throws Exception{
+        ResultSet resultSet = dbManager.dbSearch("SystemSet","*", "");
+        resultSet.next();
+        float excellent = resultSet.getFloat("excellent");
+        float good = resultSet.getFloat("good");
+        float fair = resultSet.getFloat("fair");
+
+        resultSet = dbManager.dbSearch("AttendanceRecord, Staff ", "name,outime,lastime,isLegal,intime", "where staff.id = attendancerecord.id " +
+                " and name = '" + name + "'" +
+                " and outime between '" + stasticBeginTime + "' and '" + stasticEndTime + "'");
+        float totalTime = 0;
+        int normalFrequency = 0;
+        int abnormalFrequency = 0;
+        long totalDay = (DateFormat.parse(stasticEndTime).getTime() - DateFormat.parse(stasticBeginTime).getTime()) / DAY;
+        while (resultSet.next()){
+            record.add(resultSet.getString("intime"));
+            record.add(resultSet.getString("outime"));
+            record.add(resultSet.getString("lastime"));
+            if (resultSet.getInt("isLegal") == 0){
+                normalFrequency++;
+                totalTime += resultSet.getFloat("lastime");
+                record.add("正常");
+            }
+            else {
+                abnormalFrequency++;
+                record.add("异常");
+            }
+        }
+        float average = totalTime / totalDay;
+        String comment = null;
+        if ((average - excellent)> 1e-6){
+            comment = "优秀";
+        }
+        else if ((average - good) > 1e-6) {
+            comment = "良好";
+        }
+        else if ((average - fair) > 1e-6){
+            comment = "及格";
+        }
+        else {
+            comment = "不合格";
+        }
+        String[] result = new String[4];
+        result[0] = Float.toString(totalTime);
+        result[1] = Integer.toString(normalFrequency);
+        result[2] = comment;
+        result[3] = Integer.toString(abnormalFrequency);
+        return result;
+    }
+
     private ArrayList getPersonAllDate(String name) throws Exception{
         ArrayList dateList = new ArrayList();
         ResultSet resultSet = dbManager.dbSearch("AttendanceRecord, Staff ", "outime", "where staff.id = attendancerecord.id " +
-                " and name = '" + name + "'");
+                " and name = '" + name + "'" );
         while (resultSet.next()){
-            dateList.add(resultSet.getString("outime").substring(0, 10));
+            if (resultSet.getString("outime") != null) {
+                dateList.add(resultSet.getString("outime").substring(0, 10));
+            }
         }
         return dateList;
     }
@@ -344,7 +398,9 @@ public class ComponentManger {
                 rowdate[i - 1][5] = personStastic[3];
             }
             String[] columnNames = {"时间段" ,"姓名", "考勤总时间/小时", "考勤总次数", "评价", "异常记录次数"};
-            resultStastic.remove(0);
+            if (resultStastic.getComponentCount() !=0) {
+                resultStastic.remove(0);
+            }
             resultStastic.add(guiManager.createTable(columnNames, rowdate, false));
             resultStastic.revalidate();
         }
@@ -352,10 +408,31 @@ public class ComponentManger {
             ArrayList dateList = new ArrayList();
             String[] personStastic = getPersonStastic(nameChoose);
             dateList = getPersonAllDate(nameChoose);
-            resultStastic.remove(0);
+            if (resultStastic.getComponentCount() != 0) {
+                resultStastic.remove(0);
+            }
             resultStastic.add(guiManager.createPersonalStatis(personStastic, dateList));
             resultStastic.revalidate();
         }
+    }
+
+    public void doCheckFileOut (File file) throws Exception{
+        String[] staffName = getAllStaffName();
+        FileWriter fw = new FileWriter(file);
+        for (int i = 1; i < staffName.length; i++){
+            fw.write(staffName[i]+"\r\n");
+            ArrayList recordList = new ArrayList();
+            String[] result = getPersonStastic(staffName[i], recordList);
+            for (int j = 0; j < recordList.toArray().length ; j = j + 4){
+                fw.write("进入时间:\t" + recordList.get(j).toString());
+                fw.write("\t离开时间:\t" + recordList.get(j + 1).toString());
+                fw.write("\t持续时间:\t" + recordList.get(j + 2).toString());
+                fw.write("\t记录状态:\t" + recordList.get(j + 3).toString() + "\r\n");
+            }
+            fw.write("统计信息如下:\r\n");
+            fw.write("总持续时间:\t" + result[0] + "\t总出入次数:\t" + result[1] + "\t考勤评价:\t" + result[2] + "\t异常记录次数:\t" + result[3] + "\r\n\r\n\r\n");
+        }
+        fw.close();
     }
 
     public void doPersonEnroll(String[] information, byte[] fingerTemplate) throws Exception{

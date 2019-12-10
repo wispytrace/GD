@@ -14,11 +14,36 @@ public class WorkThread extends Thread{
     private FingerManager fingerManager = null;
     private DbManager dbManager = null;
     private ComponentManger componentManger = null;
+    private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private String checkBeginTime = null;
+    private String checkEndTime = null;
     public void WorkThread(GuiManager guiManager, FingerManager fingerManager, DbManager dbManager, ComponentManger componentManger){
-        this.guiManager = guiManager;
-        this.fingerManager = fingerManager;
-        this.dbManager = dbManager;
-        this.componentManger = componentManger;
+        try {
+
+            this.guiManager = guiManager;
+            this.fingerManager = fingerManager;
+            this.dbManager = dbManager;
+            this.componentManger = componentManger;
+            ResultSet resultSet = dbManager.dbSearch("SystemSet", "beginTime", "");
+            resultSet.next();
+            checkBeginTime = resultSet.getString("beginTime") + ":00";
+            resultSet = dbManager.dbSearch("SystemSet", "endTime", "");
+            resultSet.next();
+            checkEndTime = resultSet.getString("endTime") + ":00";
+        }catch (Exception e){
+            guiManager.showMessageDialog(e.getMessage());
+        }
+    }
+    private boolean isLegal(float lastime) throws Exception{
+        if (lastime > 8.0){
+            return false;
+        }
+        Date nowTime = new Date();
+        Date endTime = dateFormat.parse(dateFormat.format(nowTime).substring(0, 11)+checkEndTime);
+        if ((nowTime.getTime() - endTime.getTime()) > 0){
+            return false;
+        }
+        return true;
     }
     public void run() {
         super.run();
@@ -31,12 +56,18 @@ public class WorkThread extends Thread{
         }catch (Exception e){
             guiManager.showErrorDialog(e.getMessage());
         }
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         while (true){
             try{
                 fingerManager.figureAcquire(img, template);
                 fingerManager.fingerIdentity(template, fid);
-                String nowTime = dateFormat.format(new Date());
+                Date now = new Date();
+                String nowTime = dateFormat.format(now);
+                Date beginTime = dateFormat.parse(nowTime.substring(0, 11)+checkBeginTime);
+                if ((now.getTime() - beginTime.getTime()) < 0){
+                    guiManager.showErrorDialog("未到指定打卡时间");
+                    throw new IOException();
+                }
+
                 if (fingerManager.Online.containsKey(fid[0])){
                     dbManager.dbUpdate("AttendanceRecord","outime", "'" + nowTime + "'", "recordid="+fingerManager.Online.get(fid[0]));
                     dbManager.dbUpdate("Staff", "status", "0", "id="+fid[0]);
@@ -44,7 +75,13 @@ public class WorkThread extends Thread{
                     resultSet.next();
                     String intime = resultSet.getString("intime");
                     float lastTime = (dateFormat.parse(nowTime).getTime() - dateFormat.parse(intime).getTime()) / (1000 * 60 * 60);
-                    dbManager.dbUpdate("AttendanceRecord", "lastime", Float.toString(lastTime), "recordid="+fingerManager.Online.get(fid[0]));
+                    if (!isLegal(lastTime)){
+                        dbManager.dbUpdate("AttendanceRecord", "isLegal", Integer.toString(1), "recordid="+fingerManager.Online.get(fid[0]));
+                        dbManager.dbUpdate("AttendanceRecord", "lastime", Float.toString(0), "recordid=" + fingerManager.Online.get(fid[0]));
+                    }
+                    else {
+                        dbManager.dbUpdate("AttendanceRecord", "lastime", Float.toString(lastTime), "recordid=" + fingerManager.Online.get(fid[0]));
+                    }
                     fingerManager.Online.remove(fid[0]);
                     fingerManager.lightControl("red");
                     componentManger.statusDisplay(guiManager.statusPanel);

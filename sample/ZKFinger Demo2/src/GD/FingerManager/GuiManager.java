@@ -459,7 +459,7 @@ public class GuiManager {
 
 
         JLabel time = new JLabel("时间范围:");
-        JButton week = new JButton("上一周");
+        JButton week = new JButton("今日");
         JFrame clock = new JFrame();
         JTextField start = new JTextField(10);
         JLabel to = new JLabel("到");
@@ -521,7 +521,11 @@ public class GuiManager {
         output.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-
+                try {
+                    createOutputDialog();
+                }catch (Exception e){
+                    showErrorDialog(e.getMessage());
+                }
             }
         });
 
@@ -563,6 +567,24 @@ public class GuiManager {
             showErrorDialog(e.getMessage());
         }
         return statisPanel;
+    }
+
+    private void createOutputDialog() throws Exception {
+        JFileChooser fileChooser = new JFileChooser();
+
+        // 设置打开文件选择框后默认输入的文件名
+        fileChooser.setSelectedFile(new File("考勤明细.txt"));
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(false);
+        // 打开文件选择框（线程将被阻塞, 直到选择框被关闭）
+        int result = fileChooser.showSaveDialog(topContainer);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            // 如果点击了"保存", 则获取选择的保存路径
+            File file = fileChooser.getSelectedFile();
+            componentManger.doCheckFileOut(file);
+            System.out.println("保存到文件: " + file.getAbsolutePath() + "\n\n");
+        }
     }
 
     private JPanel createAllStatis(){
@@ -627,6 +649,8 @@ public class GuiManager {
         resultStatis.add(createSeizePanel(), format);
         return resultStatis;
     }
+
+
 
     public void createEnrollDialog(){
         JDialog enrollDialog = new JDialog(topContainer, "人员录入", true);
@@ -726,14 +750,57 @@ public class GuiManager {
         format.gridwidth = GridBagConstraints.REMAINDER;
         enrollDialog.add(createSeizePanel(), format);
 
-        if ((workThread != null )&&(workThread.isAlive())) {
-            workThread.stop();
-        }
-        if ((enrollThread == null) || (!enrollThread.isAlive())){
-            enrollThread = new EnrollThread();
-            enrollThread.EnrollThread(guiManager, fingerManager, dbManager, imgbtn);
-            enrollThread.start();
-        }
+
+        enrollDialog.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent windowEvent) {
+                if ((workThread != null )&&(workThread.isAlive())) {
+                    workThread.stop();
+                }
+                if ((enrollThread == null) || (!enrollThread.isAlive())){
+                    enrollThread = new EnrollThread();
+                    enrollThread.EnrollThread(guiManager, fingerManager, dbManager, imgbtn);
+                    enrollThread.start();
+                }
+            }
+
+            @Override
+            public void windowClosing(WindowEvent windowEvent) {
+                if ((enrollThread != null )&&(enrollThread.isAlive())) {
+                    enrollThread.stop();
+                    enrollThread = null;
+                }
+                workThread = new WorkThread();
+                workThread.WorkThread(guiManager, fingerManager, dbManager, componentManger);
+                workThread.start();
+                enrollDialog.dispose();
+            }
+
+            @Override
+            public void windowClosed(WindowEvent windowEvent) {
+
+            }
+
+            @Override
+            public void windowIconified(WindowEvent windowEvent) {
+
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent windowEvent) {
+
+            }
+
+            @Override
+            public void windowActivated(WindowEvent windowEvent) {
+
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent windowEvent) {
+
+            }
+        });
         enrollDialog.setLocationRelativeTo(null);
         enrollDialog.setVisible(true);
     }
@@ -1043,7 +1110,7 @@ public class GuiManager {
         table.setRowHeight(40);
 
         // 第一列列宽设置为40
-        table.getColumnModel().getColumn(0).setPreferredWidth(40);
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);
         MyTableCellRenderer renderer = new MyTableCellRenderer(isOperation);
         for (int i =0; i < columnNames.length; i++ ){
             TableColumn tableColumn = table.getColumn(columnNames[i]);
